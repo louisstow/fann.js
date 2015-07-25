@@ -139,13 +139,31 @@ var FANN = {
 
 		FS.unlink("/training");
 		return d;
+	},
+
+	_cb: [],
+	ready: function (cb) {
+		this._cb.push(cb);
+		if (this._initialized) {
+			this.trigger();
+		}
+	},
+
+	trigger: function () {
+		for (var i = 0; i < this._cb.length; ++i) {
+			this._cb[i]();
+		}
+
+		this._cb.length = 0;
 	}
 };
 
 var Module = {
 	onRuntimeInitialized: function () {
+		console.log("INIT");
 		FANN.init();
-		FANN.ready && FANN.ready();
+		FANN._initialized = true;
+		FANN.trigger();
 	},
 
 	/**
