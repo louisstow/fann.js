@@ -1,0 +1,36 @@
+<script src="../out/build.js"></script>
+<script>
+var XOR_DATA = [
+    [[-1, -1], [-1]],
+    [[ 1,  1], [-1]],
+    [[-1,  1], [ 1]],
+    [[ 1, -1], [ 1]]
+];
+
+function XOR () {
+    NN = FANN.create(3, [2, 2, 1]);
+
+    NN.set_activation_steepness_hidden(1);
+    NN.set_activation_steepness_output(1);
+    NN.set_activation_function_hidden(FANN.SIGMOID_SYMMETRIC);
+    NN.set_activation_function_output(FANN.SIGMOID_SYMMETRIC);
+    NN.set_train_stop_function(FANN.STOPFUNC_BIT);
+    NN.set_bit_fail_limit(0.01);
+    NN.set_training_algorithm(FANN.TRAIN_RPROP);
+
+    data = FANN.createTraining(XOR_DATA);
+    NN.init_weights(data.pointer);
+    NN.train_on_data(data.pointer, 1000, 10, 0.01);
+
+    console.log(
+        "-1 , -1 => " + NN.run([-1, -1]), '\n',
+        "-1 ,  1 => " + NN.run([-1, 1]), '\n',
+        " 1 , -1 => " + NN.run([1, -1]), '\n',
+        " 1 ,  1 => " + NN.run([1, 1]), '\n'
+    );
+}
+
+FANN.ready(function () {
+    XOR();
+});
+</script>
