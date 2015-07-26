@@ -103,6 +103,12 @@ var FANN = {
 		wrapFunc(Network, 'run');
 		wrapFunc(TrainingData, 'destroy_train');
 		wrapFunc(TrainingData, 'duplicate_train_data');
+
+		FANN._initialized = true;
+		
+		if (window.FANN_ready) {
+			FANN_ready();
+		}
 	},
 
 	create: function (layers, neurons) {
@@ -139,31 +145,14 @@ var FANN = {
 
 		FS.unlink("/training");
 		return d;
-	},
-
-	_cb: [],
-	ready: function (cb) {
-		this._cb.push(cb);
-		if (this._initialized) {
-			this.trigger();
-		}
-	},
-
-	trigger: function () {
-		for (var i = 0; i < this._cb.length; ++i) {
-			this._cb[i]();
-		}
-
-		this._cb.length = 0;
 	}
 };
 
 var Module = {
 	onRuntimeInitialized: function () {
-		console.log("INIT");
-		FANN.init();
-		FANN._initialized = true;
-		FANN.trigger();
+		setTimeout(function () {
+			FANN.init();
+		}, 0);
 	},
 
 	/**
