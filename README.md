@@ -14,7 +14,7 @@ FANN.js can be used basically like for like with the original library. These bin
 - `num_layers` the number of layers
 - `neurons` the number of neurons in an array
 
-Create a network with the provided structure. Returns an instance of the [Network](#Network) class.
+Create a network with the provided structure. Returns an instance of the [Network](#Network) class. The first argument is the number of layers including the input and output layer. The neurons argument specified how many neurons in that layer. The first index will be the input layer, the last index will be the output layer and anything between will be hidden layer(s).
 
 ~~~js
 var network = FANN.create(3, [2, 2, 1]);
