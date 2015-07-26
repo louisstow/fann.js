@@ -8,7 +8,7 @@ Much of the [original documentation](http://leenissen.dk/fann/html/files/fann-h.
 
 FANN.js can be used basically like for like with the original library. These bindings provide an object oriented approach. For example take [`fann_print_connections(ann)`](http://leenissen.dk/fann/html/files/fann-h.html#fann_print_connections). In FANN.js this function is available on a Network instance as `network.print_connections()`. Notice the `fann_` prefix isn't necessary nor is passing the neural network reference.
 
-## FANN
+## FANN.
 
 **`Network create(num_layers Number, neurons Array<Number>)`**
 - `num_layers` the number of layers
@@ -16,8 +16,8 @@ FANN.js can be used basically like for like with the original library. These bin
 
 Create a network with the provided structure. Returns an instance of the [Network](#Network) class.
 
-~~~
-FANN.create(3, [2, 2, 1]);
+~~~js
+var network = FANN.create(3, [2, 2, 1]);
 // Input layer: 2 neurons
 // Hidden layers (1): 2 neurons
 // Output layer: 1 neuron
@@ -33,8 +33,8 @@ Create a network from a previously exported network as a string. This is useful 
 
 Create a TrainingData instance based on the provided data. 
 
-~~~
-FANN.createTraining([
+~~~js
+var tdata = FANN.createTraining([
     [[-1, -1], [-1]],
     [[ 1,  1], [-1]],
     [[-1,  1], [ 1]],
@@ -47,14 +47,14 @@ FANN.createTraining([
 
 Create a TrainingData instance based on the provided data. The string format will be the same as when exported via `.export()`.
 
-## Network
+## Network.
 
 **`Array<Number> run(inputs Array<Number>)`**
 - `inputs` array of number inputs. Length should correspond to the amount of input neurons
 
 Run the network with a set of inputs. Returns an array of the output neurons value.
 
-~~~
+~~~js
 var network = FANN.create(3, [2, 2, 1]);
 console.log(network.run([-1, 1]));
 ~~~
@@ -63,7 +63,7 @@ console.log(network.run([-1, 1]));
 
 Returns a large string containing a snapshot of the network. You can store this string and restore a network based on the snapshot data using `FANN.create()`.
 
-## TrainingData
+## TrainingData.
 
 **`String export()`**
 
