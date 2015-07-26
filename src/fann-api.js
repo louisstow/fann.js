@@ -48,18 +48,18 @@ var mappings = {
 	'descale_train': [null, ['number', 'number'], 1],
 	'print_connections': [null, ['number'], 1],
 	'print_parameters': [null, ['number'], 1],
-	'train_on_data': [null, ['number', 'number', 'number', 'number'], 1],
-	'init_weights': [null, ['number', 'number'], 1],
+	'train_on_data': [null, ['number', 'number', 'number', 'number'], 3],
+	'init_weights': [null, ['number', 'number'], 3],
 	'randomize_weights': [null, ['number', 'number', 'number'], 1],
 	'test': ['number', ['number', 'number', 'number'], 1],
-	'test_data': ['number', ['number', 'number'], 1],
+	'test_data': ['number', ['number', 'number'], 3],
 	'train': ['number', ['number', 'number', 'number'], 1],
-	'train_epoch': ['number', ['number', 'number'], 1],
+	'train_epoch': ['number', ['number', 'number'], 3],
 	'run': ['number', ['number', 'number'], 1],
 	'save': ['number', ['number', 'string'], 1],
 
 	// cascade
-	'cascadetrain_on_data': [null, ['number', 'number', 'number', 'number', 'number'], 1],
+	'cascadetrain_on_data': [null, ['number', 'number', 'number', 'number', 'number'], 3],
 	'set_cascade_activation_steepnesses': [null, ['number', 'number', 'number'], 1],
 
 	/* TRAINING DATA MAPPINGS */
@@ -80,7 +80,14 @@ Network.prototype._run = function (inputs) {
 	var inputData = Module.setValues(inputs, 'float', 4);
 	var outputPtr = this._run(inputData);
 	Module._free(inputData);
-	return Module.getValue(outputPtr, 'float');
+
+	var outputs = this.get_num_output();
+	var outputArray = [];
+	for (var i = 0; i < outputs; ++i) {
+		outputArray[i] = Module.getValue(outputPtr + i, 'float')
+	}
+
+	return outputArray;
 };
 
 Network.prototype.export = function () {
@@ -104,6 +111,13 @@ TrainingData.prototype._duplicate_train_data = function () {
 	return new TrainingData(ptr);
 };
 
+TrainingData.prototype.export = function () {
+	this.save_train("/training");
+	var data = FS.readFile('/training', {encoding: 'utf8'});
+	FS.unlink('/training');
+	return data;
+};
+
 var FANN = {
 	init: function () {
 		for (var key in mappings) {
@@ -120,13 +134,27 @@ var FANN = {
 				Fn = TrainingData;
 			}
 
-			Fn.prototype[key] = (function (k) {
-				return function () {
-					var args = Array.prototype.slice.call(arguments, 0);
-					args.unshift(this.pointer);
-					return FANN[k].apply(this, args);
-				}
-			})(key);
+			// support instance arguments
+			if (mappings[key][2] === 3) {
+				Fn.prototype[key] = (function (k) {
+					return function () {
+						var args = Array.prototype.slice.call(arguments, 0);
+						if (typeof args[0] === 'object' && args[0].pointer)
+							args[0] = args[0].pointer;
+
+						args.unshift(this.pointer);
+						return FANN[k].apply(this, args);
+					}
+				})(key);
+			} else {
+				Fn.prototype[key] = (function (k) {
+					return function () {
+						var args = Array.prototype.slice.call(arguments, 0);
+						args.unshift(this.pointer);
+						return FANN[k].apply(this, args);
+					}
+				})(key);
+			}
 		}
 
 		wrapFunc(Network, 'run');

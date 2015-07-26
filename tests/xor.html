@@ -19,15 +19,14 @@ function XOR () {
     NN.set_training_algorithm(FANN.TRAIN_RPROP);
 
     data = FANN.createTraining(XOR_DATA);
-    NN.init_weights(data.pointer);
-
-    NN.train_on_data(data.pointer, 1000, 10, 0.01);
+    NN.init_weights(data);
+    NN.train_on_data(data, 1000, 10, 0.01);
 
     console.log(
-        " -1 , -1 => " + NN.run([-1, -1]), '\n',
-        "-1 ,  1 => " + NN.run([-1, 1]), '\n',
-        " 1 , -1 => " + NN.run([1, -1]), '\n',
-        " 1 ,  1 => " + NN.run([1, 1]), '\n'
+        " -1 , -1 => " + NN.run([-1, -1])[0], '\n',
+        "-1 ,  1 => " + NN.run([-1, 1])[0], '\n',
+        " 1 , -1 => " + NN.run([1, -1])[0], '\n',
+        " 1 ,  1 => " + NN.run([1, 1])[0], '\n'
     );
 }
 
