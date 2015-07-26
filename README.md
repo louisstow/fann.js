@@ -17,7 +17,7 @@ FANN.create(3, [2, 2, 1]);
 // Input layer: 2 neurons
 // Hidden layers (1): 2 neurons
 // Output layer: 1 neuron
-~~
+~~~
 
 **`Network create(exported_network String)`**
 - `exported_network` String of a network exported through `.export()`
