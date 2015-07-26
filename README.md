@@ -65,6 +65,8 @@ Returns a large string containing a snapshot of the network. You can store this 
 
 ### Other functions
 
+The following functions are available on a Network instance. The only difference between the original documented function is you do not need to pass the network reference as the first argument or use the `fann_` prefix.
+
 - [`train()`](http://leenissen.dk/fann/html/files/fann_train-h.html#fann_train)
 - [`train_on_data()`](http://leenissen.dk/fann/html/files/fann_train-h.html#fann_train_on_data)
 - [`train_epoch()`](http://leenissen.dk/fann/html/files/fann_train-h.html#fann_train_epoch)
