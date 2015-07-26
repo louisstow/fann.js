@@ -8,6 +8,15 @@ Much of the [original documentation](http://leenissen.dk/fann/html/files/fann-h.
 
 FANN.js can be used almost like for like with the original library. These bindings provide an object oriented approach. For example take [`fann_print_connections(ann)`](http://leenissen.dk/fann/html/files/fann-h.html#fann_print_connections). In FANN.js this function is available on a Network instance as `network.print_connections()`. Notice the `fann_` prefix isn't necessary nor is passing the neural network reference.
 
+Before using the FANN library you should set a callback to `window.FANN_ready`.
+
+~~~js
+FANN_ready = function () {
+	// FANN.js is ready to use	
+	var network = FANN.create(3, [3,3,1]);
+};
+~~~
+
 ## FANN.
 
 **`Network create(num_layers Number, neurons Array<Number>)`**
