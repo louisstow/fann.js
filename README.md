@@ -4,6 +4,10 @@ The [FANN](http://leenissen.dk/fann/index.php) (Fast Artificial Neural Network) 
 
 Much of the [original documentation](http://leenissen.dk/fann/html/files/fann-h.html) is still relevant. The noticable changes will be documented below. Note not all functions have a binding. You may see mention of Fixed vs Float mode, FANN.js uses Float mode.
 
+## How to use
+
+FANN.js can be used basically like for like with the original library. These bindings provide an object oriented approach. For example take [`fann_print_connections(ann)`](http://leenissen.dk/fann/html/files/fann-h.html#fann_print_connections). In FANN.js this function is available on a Network instance as `network.print_connections()`. Notice the `fann_` prefix isn't necessary nor is passing the neural network reference.
+
 ## FANN
 
 **`Network create(num_layers Number, neurons Array<Number>)`**
@@ -64,3 +68,7 @@ Returns a large string containing a snapshot of the network. You can store this 
 **`String export()`**
 
 Returns a large string containing a snapshot of the training data. You can store this string and create a TrainingData instance using `FANN.createTraining()`.
+
+## Compiling
+
+After cloning, simply run `./build.sh build`. The built file will be in the root directory as `fann.js`.
