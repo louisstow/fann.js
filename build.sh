@@ -84,8 +84,8 @@ case "$1" in
 		cd fann
 		emcmake cmake -DCMAKE_BUILD_TYPE=Debug
 		make
-		emcc --memory-init-file 0 -O3 -s NO_BROWSER=1 -s NO_EXIT_RUNTIME=1 -s EXPORTED_FUNCTIONS="[$funcs]" -Isrc/include src/libfann.so -o ../out/fann.js
+		emcc --memory-init-file 0 -O3 -s NO_BROWSER=1 -s NO_EXIT_RUNTIME=1 -s EXPORTED_FUNCTIONS="[$funcs]" -Isrc/include src/libfann.so -o ../out/build.js
 		cd ..
-		cat src/fann-api.js out/fann.js > out/build.js
+		cat src/fann-api.js out/build.js > fann.js
 	;;
 esac
