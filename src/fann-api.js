@@ -166,16 +166,16 @@ var FANN = {
 		}
 	},
 
-	create: function (layers, neurons) {
-		if (typeof layers === 'string') {
-			FS.writeFile('/network', layers);
+	create: function (neurons) {
+		if (typeof neurons === 'string') {
+			FS.writeFile('/network', neurons);
 			var ptr = FANN.create_from_file('/network');
 			FS.unlink('/network');
 			return new Network(ptr);
 		}
 
 		var neuronsPtr = Module.setValues(neurons, 'i32', 4);
-		var network = FANN.create_standard_array(layers, neuronsPtr);
+		var network = FANN.create_standard_array(neurons.length, neuronsPtr);
 		Module._free(neuronsPtr);
 		return new Network(network);
 	},

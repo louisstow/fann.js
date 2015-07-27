@@ -8,7 +8,7 @@ var XOR_DATA = [
 ];
 
 function XOR () {
-    NN = FANN.create(3, [2, 3, 1]);
+    NN = FANN.create([2, 3, 1]);
 
     NN.set_activation_steepness_hidden(1);
     NN.set_activation_steepness_output(1);

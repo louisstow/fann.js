@@ -8,7 +8,7 @@ var XOR_DATA = [
 ];
 
 function XOR () {
-    NN = FANN.create(2, [2, 1]);
+    NN = FANN.create([2, 1]);
     data = FANN.createTraining(XOR_DATA);
 
     NN.set_training_algorithm(FANN.TRAIN_RPROP);
