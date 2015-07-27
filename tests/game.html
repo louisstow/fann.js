@@ -1,0 +1,192 @@
+<body>
+<style>
+#cr-stage {
+	border: 2px solid black;
+}
+</style>
+<script src="crafty-min.js"></script>
+<script src="../fann.js"></script>
+<script>
+var hunterNN;
+var hiderNN;
+
+var hunters = [];
+var hiders = [];
+
+var SCREEN_W = 600;
+var SCREEN_H = 400;
+
+Crafty.init(SCREEN_W, SCREEN_H);
+
+function createHunter () {
+	var h = Crafty.e('2D, Canvas, Color, Hunter, Agent, Collision')
+		.color('red')
+		.attr({w: 15, h: 15})
+		.Agent()
+		.checkHits('Hider');
+
+	var randomX = Crafty.math.randomNumber(15, SCREEN_W - 15) | 0;
+	var randomY = Crafty.math.randomNumber(15, SCREEN_H - 15) | 0;
+	h.x = randomX;
+	h.y = randomY;
+	h.direction = [1, 0];
+	h.targetDirection = [0, 0];
+
+	h.bind('HitOn', function (data) {
+		// TRAIN THE TWO NEURAL NETWORKS BASED ON
+		// THE DIRECTION
+		var train = [[
+			[this.direction[0], this.direction[1], (this.index / hunters.length) * 2 - 1],
+			this.direction	
+		]];
+
+		var d = FANN.createTraining(train);
+		hunterNN.train_on_data(d, 50 * data.length, 0, 0.01);
+	
+		for (var h = 0; h < data.length; ++h) {
+			var hider = data[h].obj;
+			var train2 = [[
+				hider.direction,
+				[-hider.direction[0], -hider.direction[1]]
+			]];
+
+			var d2 = FANN.createTraining(train2);
+			hiderNN.train_on_data(d2, 50, 0, 0.01);
+
+			for (var i = 0; i < hiders.length; ++i) {
+				if (hiders[i] == hider) {
+					hiders.splice(i, 1);
+					hider.remove();
+					createHider();
+					break;
+				}
+			}
+		}
+		
+		this.resetHitChecks('Hider');
+	});
+
+	h.index = hunters.push(h) - 1;
+}
+
+function createHider () {
+	var h = Crafty.e('2D, Canvas, Color, Hider, Agent')
+		.color('green')
+		.attr({w: 11, h: 11})
+		.Agent();
+
+	var randomX = Crafty.math.randomNumber(11, 600 - 11) | 0;
+	var randomY = Crafty.math.randomNumber(11, 400 - 11) | 0;
+	h.x = randomX;
+	h.y = randomY;
+	h.direction = [0, 0];
+	h.targetDirection = [0, 0];
+
+	hiders.push(h);
+}
+
+FANN_ready = function () {
+	hunterNN = FANN.create([3, 12, 2]);
+	hiderNN = FANN.create([2, 12, 2]);
+	hunterNN.set_activation_steepness_hidden(1);
+    hunterNN.set_activation_steepness_output(1);
+    hunterNN.set_activation_function_hidden(FANN.SIGMOID_SYMMETRIC);
+    hunterNN.set_activation_function_output(FANN.SIGMOID_SYMMETRIC);
+    hunterNN.set_train_stop_function(FANN.STOPFUNC_BIT);
+    hunterNN.set_bit_fail_limit(0.01);
+    hunterNN.set_training_algorithm(FANN.TRAIN_RPROP);
+
+	hiderNN.set_activation_steepness_hidden(1);
+    hiderNN.set_activation_steepness_output(1);
+    hiderNN.set_activation_function_hidden(FANN.SIGMOID_SYMMETRIC);
+    hiderNN.set_activation_function_output(FANN.SIGMOID_SYMMETRIC);
+    hiderNN.set_train_stop_function(FANN.STOPFUNC_BIT);
+    hiderNN.set_bit_fail_limit(0.01);
+    hiderNN.set_training_algorithm(FANN.TRAIN_RPROP);
+	
+	createHunter();
+	createHunter();
+	createHunter();
+	createHider();
+	createHider();
+	createHider();
+	createHider();
+	createHider();
+	createHider();
+	createHider();
+	createHider();
+	createHider();
+	createHider();
+	createHider();
+	createHider();
+
+	setInterval(function () {
+		calculate(hunters, hiders, hunterNN);
+	}, 100);
+
+	// offset the hiders interval
+	setTimeout(function () {
+		setInterval(function () {
+			calculate(hiders, hunters, hiderNN);
+		}, 100);
+	}, 50);
+};
+
+Crafty.c("Agent", {
+	speed: 3,
+	Agent: function () {
+		this.bind('EnterFrame', function () {
+			this.x += this.direction[0] * this.speed;
+			this.y += this.direction[1] * this.speed;
+		 	//this.rotation = Math.atan2(this.direction[1], this.direction[0]) * 180 / Math.PI;
+
+			if (this._x < -this._w)
+				this.x = SCREEN_W - this._w;
+			if (this._x > SCREEN_W)
+				this.x = 0;
+			if (this._y > SCREEN_H)
+				this.y = 0;
+			if (this._y < -this._h)
+				this.y = SCREEN_H - this._h;
+		});
+
+		return this;
+	}
+});
+
+function calculate (a, b, nn) {
+	for (var i = 0; i < a.length; ++i) {
+		var closestDistance = Infinity;
+		var closestHider;
+	
+		for (var j = 0; j < b.length; ++j) {
+			var d = Math.pow(Math.abs(b[j]._x - a[i]._x), 2) +
+					Math.pow(Math.abs(b[j]._y - a[i]._y), 2);
+
+			if (d < closestDistance) {
+				closestDistance = d;
+				closestHider = b[j];
+			}
+		}
+
+		if (closestHider) {
+			var sqr = Math.sqrt(closestDistance);
+			var inputVector = [
+				(closestHider._x - a[i]._x) / sqr,
+				(closestHider._y - a[i]._y) / sqr
+			];
+
+			if (nn.get_num_input() == 3) {
+				inputVector[2] = (i / hunters.length) * 2 - 1;
+			}
+
+			var out = nn.run(inputVector);
+			
+			a[i].direction[0] = out[0];
+			a[i].direction[1] = out[1];
+		}
+	}
+}
+
+</script>
+</body>
