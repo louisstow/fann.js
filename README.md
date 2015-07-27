@@ -13,7 +13,7 @@ Before using the FANN library you should set a callback to `window.FANN_ready`.
 ~~~js
 FANN_ready = function () {
 	// FANN.js is ready to use	
-	var network = FANN.create(3, [3,3,1]);
+	var network = FANN.create([3, 3, 1]);
 };
 ~~~
 
@@ -25,10 +25,11 @@ FANN_ready = function () {
 Create a network with the provided structure. Returns an instance of the [Network](#Network) class. The neurons array argument specifies how many neurons are in that layer. The first index will be the input layer, the last index will be the output layer and anything between will be hidden layer(s).
 
 ~~~js
-var network = FANN.create([2, 2, 1]);
-// Input layer: 2 neurons
-// Hidden layers (1): 2 neurons
-// Output layer: 1 neuron
+var network = FANN.create([
+	2, // Input layer: 2 neurons
+	2, // Hidden layers (1): 2 neurons
+	1  // Output layer: 1 neuron
+]);
 ~~~
 
 **`Network create(exported_network String)`**
@@ -63,7 +64,7 @@ Create a TrainingData instance based on the provided data. The string format wil
 Run the network with a set of inputs. Returns an array of the output neurons value.
 
 ~~~js
-var network = FANN.create(3, [2, 2, 1]);
+var network = FANN.create([2, 2, 1]);
 console.log(network.run([-1, 1]));
 ~~~
 
