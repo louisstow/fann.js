@@ -82,7 +82,7 @@ Network.prototype._run = function (inputs) {
 	var outputs = this.get_num_output();
 	var outputArray = [];
 	for (var i = 0; i < outputs; ++i) {
-		outputArray[i] = Module.getValue(outputPtr + i, 'float')
+		outputArray[i] = Module.getValue(outputPtr + (i * 4), 'float')
 	}
 
 	return outputArray;
