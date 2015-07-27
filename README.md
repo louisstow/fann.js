@@ -126,6 +126,10 @@ The following functions are available on a Network instance. The only difference
 
 Returns a large string containing a snapshot of the training data. You can store this string and create a TrainingData instance using `FANN.createTraining()`.
 
+## Constants
+
+All of the enum and constants from the original library are available under the `FANN.` namespace. For example, `FANN_TRAIN_INCREMENTAL` becomes `FANN.TRAIN_INCREMENTAL`.
+
 ## Compiling
 
 After cloning, simply run `./build.sh build`. The built file will be in the root directory as `fann.js`.
