@@ -19,14 +19,13 @@ FANN_ready = function () {
 
 ## FANN.
 
-**`Network create(num_layers Number, neurons Array<Number>)`**
-- `num_layers` the number of layers
-- `neurons` the number of neurons in an array
+**`Network create(neurons Array<Number>)`**
+- `neurons` the number of neurons in an array. The length of the array is the number of layers
 
-Create a network with the provided structure. Returns an instance of the [Network](#Network) class. The first argument is the number of layers including the input and output layer. The neurons argument specified how many neurons in that layer. The first index will be the input layer, the last index will be the output layer and anything between will be hidden layer(s).
+Create a network with the provided structure. Returns an instance of the [Network](#Network) class. The neurons array argument specifies how many neurons are in that layer. The first index will be the input layer, the last index will be the output layer and anything between will be hidden layer(s).
 
 ~~~js
-var network = FANN.create(3, [2, 2, 1]);
+var network = FANN.create([2, 2, 1]);
 // Input layer: 2 neurons
 // Hidden layers (1): 2 neurons
 // Output layer: 1 neuron
@@ -128,12 +127,12 @@ Returns a large string containing a snapshot of the training data. You can store
 
 ### Other functions
 
-- [`shuffle_train_data`](http://leenissen.dk/fann/html/files/fann_train-h.html#fann_shuffle_train_data)
-- [`destroy_train`](http://leenissen.dk/fann/html/files/fann_train-h.html#fann_destroy_train)
-- [`duplicate_train_data`](http://leenissen.dk/fann/html/files/fann_train-h.html#fann_duplicate_train_data)
-- [`length_train_data`](http://leenissen.dk/fann/html/files/fann_train-h.html#fann_length_train_data)
-- [`num_input_train_data`](http://leenissen.dk/fann/html/files/fann_train-h.html#fann_num_input_train_data)
-- [`num_output_train_data`](http://leenissen.dk/fann/html/files/fann_train-h.html#fann_num_output_train_data)
+- [`shuffle_train_data()`](http://leenissen.dk/fann/html/files/fann_train-h.html#fann_shuffle_train_data)
+- [`destroy_train()`](http://leenissen.dk/fann/html/files/fann_train-h.html#fann_destroy_train)
+- [`duplicate_train_data()`](http://leenissen.dk/fann/html/files/fann_train-h.html#fann_duplicate_train_data)
+- [`length_train_data()`](http://leenissen.dk/fann/html/files/fann_train-h.html#fann_length_train_data)
+- [`num_input_train_data()`](http://leenissen.dk/fann/html/files/fann_train-h.html#fann_num_input_train_data)
+- [`num_output_train_data()`](http://leenissen.dk/fann/html/files/fann_train-h.html#fann_num_output_train_data)
 
 ## Constants
 
