@@ -126,6 +126,15 @@ The following functions are available on a Network instance. The only difference
 
 Returns a large string containing a snapshot of the training data. You can store this string and create a TrainingData instance using `FANN.createTraining()`.
 
+### Other functions
+
+- [`shuffle_train_data`](http://leenissen.dk/fann/html/files/fann_train-h.html#fann_shuffle_train_data)
+- [`destroy_train`](http://leenissen.dk/fann/html/files/fann_train-h.html#fann_destroy_train)
+- [`duplicate_train_data`](http://leenissen.dk/fann/html/files/fann_train-h.html#fann_duplicate_train_data)
+- [`length_train_data`](http://leenissen.dk/fann/html/files/fann_train-h.html#fann_length_train_data)
+- [`num_input_train_data`](http://leenissen.dk/fann/html/files/fann_train-h.html#fann_num_input_train_data)
+- [`num_output_train_data`](http://leenissen.dk/fann/html/files/fann_train-h.html#fann_num_output_train_data)
+
 ## Constants
 
 All of the enum and constants from the original library are available under the `FANN.` namespace. For example, `FANN_TRAIN_INCREMENTAL` becomes `FANN.TRAIN_INCREMENTAL`.
