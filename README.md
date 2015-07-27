@@ -17,6 +17,11 @@ FANN_ready = function () {
 };
 ~~~
 
+## Demos
+
+- [Hunters and Hiders](http://louisstow.github.io/fann.js/tests/game.html)
+- [XOR](http://louisstow.github.io/fann.js/tests/xor.html)
+
 ## FANN.
 
 **`Network create(neurons Array<Number>)`**
