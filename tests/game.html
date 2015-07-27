@@ -41,7 +41,7 @@ function createHunter () {
 		]];
 
 		var d = FANN.createTraining(train);
-		hunterNN.train_on_data(d, 50, 0, 0.01);
+		hunterNN.train_on_data(d, 20, 0, 0.01);
 	
 		for (var h = 0; h < data.length; ++h) {
 			var hider = data[h].obj;
@@ -190,5 +190,5 @@ function calculate (a, b, nn) {
 
 </script>
 
-<p>The red blocks are trained to hunt the green blocks. The green blocks are trained to hide from the red blocks.</p>
+<p>The red blocks are trained to hunt the green blocks. The green blocks are trained to hide from the red blocks. Wait for the first collision to see them learn.</p>
 </body>
