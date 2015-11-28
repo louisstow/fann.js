@@ -1,75 +1,3 @@
-var mappings = {
-	/* GLOBAL MAPPINGS */
-	'create_standard_array': ['number', ['number', 'number'], 0],
-	'read_train_from_file': ['number', ['string'], 0],
-	'create_from_file': ['number', ['string'], 0],
-
-	/* NETWORK MAPPINGS */
-	'set_activation_steepness': [null, ['number', 'number', 'number', 'number'], 1],
-	'set_activation_steepness_layer': [null, ['number', 'number', 'number'], 1],
-	'set_activation_steepness_hidden': [null, ['number', 'number'], 1],
-	'set_activation_steepness_output': [null, ['number', 'number'], 1],
-	'set_activation_function': [null, ['number', 'number', 'number', 'number'], 1],
-	'set_activation_function_layer': [null, ['number', 'number', 'number'], 1],
-	'set_activation_function_hidden': [null, ['number', 'number'], 1],
-	'set_activation_function_output': [null, ['number', 'number'], 1],
-	'set_train_stop_function': [null, ['number', 'number'], 1],
-	'set_train_error_function': [null, ['number', 'number'], 1],
-	'set_bit_fail_limit': [null, ['number', 'number'], 1],
-	'set_training_algorithm': [null, ['number', 'number'], 1],
-	'set_learning_rate': [null, ['number', 'number'], 1],
-	'set_learning_momentum': [null, ['number', 'number'], 1],
-	'set_quickprop_decay': [null, ['number', 'number'], 2],
-	'set_quickprop_mu': [null, ['number', 'number'], 2],
-
-	'get_bit_fail': ['number', ['number'], 1],
-	'get_bit_fail_limit': ['number', ['number'], 1],
-	'get_MSE': ['number', ['number'], 1],
-	'get_num_input': ['number', ['number'], 1],
-	'get_num_output': ['number', ['number'], 1],
-	'get_num_layers': ['number', ['number'], 1],
-	'get_total_neurons': ['number', ['number'], 1],
-	'get_total_connections': ['number', ['number'], 1],
-	'get_network_type': ['number', ['number'], 1],
-	'get_connection_rate': ['number', ['number'], 1],
-	'get_training_algorithm': ['number', ['number'], 1],
-	'get_learning_rate': ['number', ['number'], 1],
-	'get_learning_momentum': ['number', ['number'], 1],
-	'get_activation_function': ['number', ['number', 'number', 'number'], 1],
-	'get_activation_steepness': ['number', ['number', 'number', 'number'], 1],
-	'get_train_error_function': ['number', ['number'], 1],
-	'get_quickprop_decay': ['number', ['number'], 2],
-	'get_quickprop_mu': ['number', ['number'], 2],
-	'reset_MSE': [null, ['number'], 1],
-
-	'scale_train': [null, ['number', 'number'], 1],
-	'descale_train': [null, ['number', 'number'], 1],
-	'print_connections': [null, ['number'], 1],
-	'print_parameters': [null, ['number'], 1],
-	'train_on_data': [null, ['number', 'number', 'number', 'number'], 3],
-	'init_weights': [null, ['number', 'number'], 3],
-	'randomize_weights': [null, ['number', 'number', 'number'], 1],
-	'test': ['number', ['number', 'number', 'number'], 1],
-	'test_data': ['number', ['number', 'number'], 3],
-	'train': ['number', ['number', 'number', 'number'], 1],
-	'train_epoch': ['number', ['number', 'number'], 3],
-	'run': ['number', ['number', 'number'], 1],
-	'save': ['number', ['number', 'string'], 1],
-
-	// cascade
-	'cascadetrain_on_data': [null, ['number', 'number', 'number', 'number', 'number'], 3],
-	'set_cascade_activation_steepnesses': [null, ['number', 'number', 'number'], 1],
-
-	/* TRAINING DATA MAPPINGS */
-	'shuffle_train_data': [null, ['number'], 2],
-	'destroy_train': [null, ['number'], 2],
-	'duplicate_train_data': ['number', ['number'], 2],
-	'save_train': ['number', ['number', 'string'], 2],
-	'length_train_data': ['number', ['number'], 2],
-	'num_input_train_data': ['number', ['number'], 2],
-	'num_output_train_data': ['number', ['number'], 2],
-};
-
 function Network (nn) {
 	this.pointer = nn;
 }
@@ -86,6 +14,14 @@ Network.prototype._run = function (inputs) {
 	}
 
 	return outputArray;
+};
+
+Network.prototype.run_list = function (inputList) {
+  var result = [];
+  for (var l=inputList.length, i=0; i<l; i++) {
+    result.push( this.run(inputList[i]) );
+  }
+  return result;
 };
 
 Network.prototype.export = function () {
@@ -116,7 +52,7 @@ TrainingData.prototype.export = function () {
 	return data;
 };
 
-var FANN = {
+exports.FANN = {
 	init: function () {
 		for (var key in mappings) {
 			this[key] = Module.cwrap(
@@ -160,8 +96,8 @@ var FANN = {
 		wrapFunc(TrainingData, 'duplicate_train_data');
 
 		FANN._initialized = true;
-		
-		if (window.FANN_ready) {
+
+		if (exports.FANN_ready) {
 			FANN_ready();
 		}
 	},
@@ -287,3 +223,41 @@ enums(
 	"NETTYPE_LAYER",
 	"NETTYPE_SHORTCUT"
 );
+
+
+/* * *  Avatar Support  * * */
+
+realObjects = {
+  0: { // FANN connector
+    create: function(netDefinition) {
+      realObjects[++lastObjID] = FANN.create(netDefinition);
+      return lastObjID;
+    },
+    createTraining: function(data) {
+      realObjects[++lastObjID] = FANN.createTraining(data);
+      return lastObjID;
+    }
+  }
+};
+lastObjID = 0;
+
+exports.addEventListener('message', function(msg) {
+  var data = msg.data;
+  if (data.obj!==undefined && data.doID!==undefined) {
+    if (data.obj===0 && data.method==='whenReady') {
+      var ready = exports.FANN_ready = function() {
+        postMessage({obj:0, doID:data.doID});
+      }
+      if (FANN._initialized) ready(); // ensure post init call of whenReady().
+    } else {
+      var obj = realObjects[data.obj];
+      var error = null, response = null;
+      try {
+        response = obj[data.method].apply(obj, data.args);
+      } catch(err) {
+        error = err.message;
+      }
+      postMessage({obj:data.obj, doID:data.doID, error:error, response:response});
+    }
+  }
+});
