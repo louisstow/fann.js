@@ -90,13 +90,15 @@ case "$1" in
 	  header="$header\n**\n`sed 's/^/** /' LICENSE`\n*/"
     (
       echo "$header\n\n(function(exports) {"
-      cat src/fann-mappings.js src/fann-factory-base.js
+      cat src/fann-mappings.js src/fann-factory-base.js src/enums.js
       echo '})(window);'
     ) > fann-factory.js
+    echo fann-factory.js done.
     (
       echo "$header\n\n(function(exports) {"
-		  cat src/fann-mappings.js src/fann-api.js out/build.js
+		  cat src/fann-mappings.js src/fann-api.js src/enums.js out/build.js
 		  echo '})( (typeof window==="object") ? window : this.exports ? this.exports : this );'
 		) > fann.js
+    echo fann.js done.
 	;;
 esac

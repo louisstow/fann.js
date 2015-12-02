@@ -98,28 +98,28 @@ var mappings = {
 };
 // Avatar represents objects at WebWorker on page context.
 function avatarConstructor(initFn) {
-  var objID, fannWorker, doing={};
+    var objID, fannWorker, doing={};
 
-  var C = function(__fannWorker, __objID) {
-    fannWorker = __fannWorker;
-    objID = __objID;
-    fannWorker.avatars[objID] = this;
-    if(initFn) initFn();
-  }
+    var C = function(__fannWorker, __objID) {
+        fannWorker = __fannWorker;
+        objID = __objID;
+        fannWorker.avatars[objID] = this;
+        if(initFn) initFn();
+    }
 
-  C.prototype.getWorker = function(){ return fannWorker };
+    C.prototype.getWorker = function(){ return fannWorker };
 
-  C.prototype.__workerResponse = function(doID, error, response) {
-    doing[doID](error, response);
-    delete doing[doID];
-  };
+    C.prototype.__workerResponse = function(doID, error, response) {
+        doing[doID](error, response);
+        delete doing[doID];
+    };
 
-  C.prototype.__workerDo = function(method, args, callback) {
-    var doID = Math.random();
-    doing[doID] = callback;
-    fannWorker.postMessage({doID:doID, obj:objID, method:method, args:args});
-  };
-  return C;
+    C.prototype.__workerDo = function(method, args, callback) {
+        var doID = Math.random();
+        doing[doID] = callback;
+        fannWorker.postMessage({doID:doID, obj:objID, method:method, args:args});
+    };
+    return C;
 }
 
 
@@ -127,16 +127,20 @@ function avatarConstructor(initFn) {
 
 var Network = avatarConstructor();
 
+Network.prototype.getPointer = function (callback) {
+    this.__workerDo('getPointer', [], callback);
+}
+
 Network.prototype.run = function (inputs, callback) {
-  this.__workerDo('run', [inputs], callback);
+    this.__workerDo('run', [inputs], callback);
 };
 
 Network.prototype.run_list = function (inputList, callback) {
-  this.__workerDo('run_list', [inputList], callback);
+    this.__workerDo('run_list', [inputList], callback);
 };
 
 Network.prototype.export = function (callback) {
-  this.__workerDo('export', [], callback);
+    this.__workerDo('export', [], callback);
 };
 
 
@@ -144,8 +148,12 @@ Network.prototype.export = function (callback) {
 
 var TrainingData = avatarConstructor();
 
+TrainingData.prototype.getPointer = function (callback) {
+    this.__workerDo('getPointer', [], callback);
+}
+
 TrainingData.prototype.export = function (callback) {
-  this.__workerDo('export', [], callback);
+    this.__workerDo('export', [], callback);
 };
 
 
@@ -154,60 +162,120 @@ TrainingData.prototype.export = function (callback) {
 // basePath discover allows to require fann.js from the right URI.
 var basePath = './', scriptTags = document.getElementsByTagName('script');
 for (var script,i=0; script=scriptTags[i]; i++) {
-  if (script.src.indexOf('fann-factory.js')>-1) {
-    basePath = script.src.replace(/\/[^\/]+$/, '/');
-  }
+    if (script.src.indexOf('fann-factory.js')>-1) {
+        basePath = script.src.replace(/\/[^\/]+$/, '/');
+    }
 }
 
 // Build WebWorker, FANN avatar and calls back when FANN_ready() is called.
 // This is the only directly accessible function on main context.
 exports.createFANNWorker = function(callback) {
-  var worker = new Worker(basePath + 'fann.js');
-  worker.avatars = {};
-  var fann = new FANN(worker, 0);
-  worker.onmessage = function (msg) {
-    obj = worker.avatars[msg.data.obj];
-    obj.__workerResponse(msg.data.doID, msg.data.error, msg.data.response);
-  }
-  fann.__workerDo('whenReady', [], function(error, response){
-    callback(error, fann);
-  });
+    var worker = new Worker(basePath + 'fann.js');
+    worker.avatars = {};
+    var fann = new FANN(worker, 0);
+    worker.onmessage = function (msg) {
+        obj = worker.avatars[msg.data.obj];
+        obj.__workerResponse(msg.data.doID, msg.data.error, msg.data.response);
+    }
+    fann.__workerDo('whenReady', [], function(error, response){
+        callback(error, fann);
+    });
 };
 
 var FANN = avatarConstructor();
 
 FANN.prototype.create = function (netDefinition, callback) {
-  var me = this;
-  this.__workerDo('create', [netDefinition], function(error, objID){
-    if (error) callback(error);
-    else callback(null, new Network(me.getWorker(), objID));
-  });
+    var me = this;
+    this.__workerDo('create', [netDefinition], function(error, objID){
+        if (error) callback(error);
+        else {
+            var ann = new Network(me.getWorker(), objID);
+            ann.getPointer(function(err, pointer){
+                ann.pointer = pointer;
+                callback(err, ann);
+            });
+        }
+    });
 };
 
 FANN.prototype.createTraining = function (data, callback) {
-  var me = this;
-  this.__workerDo('createTraining', [data], function(error, objID){
-    if (error) callback(error);
-    else callback(null, new TrainingData(me.getWorker(), objID));
-  });
+    var me = this;
+    this.__workerDo('createTraining', [data], function(error, objID){
+        if (error) callback(error);
+        else {
+            var td = new TrainingData(me.getWorker(), objID);
+            td.getPointer(function(err, pointer){
+                td.pointer = pointer;
+                callback(err, td);
+            });
+        }
+    });
 };
 
+function enums () {
+    for (var i = 0; i < arguments.length; ++i) {
+        FANN.prototype[arguments[i]] = i;
+    }
+}
 
 // Do the FANN.init job. Add methods to constructors.
 for (var method in mappings) {
-	if (mappings[method][2] === 0) continue; // ignore that method.
+    if (mappings[method][2] === 0) continue; // ignore that method.
 
-	var Constructor = (mappings[method][2] === 2) ? TrainingData : Network;
+    var Constructor = (mappings[method][2] === 2) ? TrainingData : Network;
 
-	Constructor.prototype[method] = (function(method){
-    return function() {
-	    var args = Array.prototype.slice.call(arguments, 0);
-	    var callback = args.pop();
-	    if (typeof callback !== 'function') {
-	      throw new Error('The last parameter on fann-factory methods must be a callback function.');
-	    }
-	    this.__workerDo(method, args, callback);
-	  };
-	})(method);
+    Constructor.prototype[method] = (function(method){
+        return function() {
+            var args = Array.prototype.slice.call(arguments, 0);
+            var callback = args.pop();
+            if (typeof callback !== 'function') {
+                throw new Error('The last parameter on fann-factory methods must be a callback function.');
+            }
+            this.__workerDo(method, args, callback);
+        };
+    })(method);
 }
+enums(
+    "TRAIN_INCREMENTAL",
+    "TRAIN_BATCH",
+    "TRAIN_RPROP",
+    "TRAIN_QUICKPROP",
+    "TRAIN_SARPROP"
+);
+
+enums(
+    "LINEAR",
+    "THRESHOLD",
+    "THRESHOLD_SYMMETRIC",
+    "SIGMOID",
+    "SIGMOID_STEPWISE",
+    "SIGMOID_SYMMETRIC",
+    "SIGMOID_SYMMETRIC_STEPWISE",
+    "GAUSSIAN",
+    "GAUSSIAN_SYMMETRIC",
+    "GAUSSIAN_STEPWISE",
+    "ELLIOT",
+    "ELLIOT_SYMMETRIC",
+    "LINEAR_PIECE",
+    "LINEAR_PIECE_SYMMETRIC",
+    "SIN_SYMMETRIC",
+    "COS_SYMMETRIC",
+    "SIN",
+    "COS"
+);
+
+enums(
+    "ERRORFUNC_LINEAR",
+    "ERRORFUNC_TANH"
+);
+
+enums(
+    "STOPFUNC_MSE",
+    "STOPFUNC_BIT"
+);
+
+enums(
+    "NETTYPE_LAYER",
+    "NETTYPE_SHORTCUT"
+);
 })(window);
