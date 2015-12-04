@@ -144,6 +144,36 @@ Returns a large string containing a snapshot of the training data. You can store
 
 All of the enum and constants from the original library are available under the `FANN.` namespace. For example, `FANN_TRAIN_INCREMENTAL` becomes `FANN.TRAIN_INCREMENTAL`.
 
+## WebWorker helper script
+
+You may have noticed that the `FANN.js` can freeze the page while performing lengthy operations. You can run it inside WebWorker for a better user experience. The bad news is the messaging system, the good news is the `fann-factory.js`. Replace `<script async src="fann.js">` by `<script src="fann-factory.js">`. This script provides a transparent WebWorker usage replacing all methods by an async version. It is preet
+
+Example:
+~~~js
+createFANNWorker(function(err, FANN){
+  FANN.create([2, 1], function(err, NN) {
+    FANN.createTraining(MY_TRAINING_ARRAY, function(err, trainingData){
+      NN.train_on_data(trainingData, function(err){
+        NN.run_list(MY_LIST_OF_INPUTS, function(err, results){
+          console.log(
+            'Results for N cases:\n' +
+            'case A:' + results[0] + '\n' +
+            'case B:' + results[1] + '\n' +
+            ...
+            'case ?:' + results[N]
+          );
+          NN.get_MSE(function(error, mse){
+            console.log('Mean squared error: ' + mse);
+          });
+        });
+      });
+    });
+  });
+});
+~~~
+
+The async methods are pretty like node.js pattern. The last argument is ever used as callback, so you don't need to add nulls in between to set the callback.
+
 ## Compiling
 
 After cloning, simply run `./build.sh build`. The built file will be in the root directory as `fann.js`.

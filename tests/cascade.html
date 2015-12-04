@@ -1,5 +1,20 @@
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Cascade XOR test</title>
+  <style>
+    ul { display: inline-block; width: 45% }
+  </style>
+</head>
+<body>
+<pre><ul id="elLog1"></ul><ul id="elLog2"></ul></pre>
+<p>Open your console for more information.</p>
 <script async src="../fann.js"></script>
+<script src="../fann-factory.js"></script><!-- Smaller script. Don't worry with async loading. -->
 <script>
+function log1(msg) { elLog1.innerHTML += '<li>'+msg+'</li>' }
+function log2(msg) { elLog2.innerHTML += '<li>'+msg+'</li>' }
+
 var XOR_DATA = [
     [[-1, -1], [-1]],
     [[ 1,  1], [-1]],
@@ -8,7 +23,8 @@ var XOR_DATA = [
 ];
 
 function XOR () {
-    NN = FANN.create([2, 1]);
+    log1('<b>XOR computed in the page context.</b>');
+    var NN = FANN.create([2, 1]);
     data = FANN.createTraining(XOR_DATA);
 
     NN.set_training_algorithm(FANN.TRAIN_RPROP);
@@ -21,15 +37,63 @@ function XOR () {
 
     NN.cascadetrain_on_data(data.pointer, 10, 1, 0.0);
 
-    console.log(
-        " -1 , -1 => " + NN.run([-1, -1]), '\n',
-        "-1 ,  1 => " + NN.run([-1, 1]), '\n',
-        " 1 , -1 => " + NN.run([1, -1]), '\n',
-        " 1 ,  1 => " + NN.run([1, 1]), '\n'
-    );
+    log1("-1 , -1 => " + NN.run([-1, -1]));
+    log1("-1 ,  1 => " + NN.run([-1, 1]) );
+    log1(" 1 , -1 => " + NN.run([1, -1]) );
+    log1(" 1 ,  1 => " + NN.run([1, 1])  );
+    log1("Error: " + NN.get_MSE()        );
+    log1("Done.");
 }
+
+runAsyncChaining = function(fnList) {
+  curFn = fnList.shift();
+  curFn(function done(err){
+    if (err) log2('<b>ERROR:</b> '+err);
+    else if (fnList.length > 0) runAsyncChaining(fnList);
+    else log2('Done.');
+  });
+}
+
+log2('<b>XOR computed in a WebWorker.</b>');
+var $ = {} // context container.
+runAsyncChaining([
+  function(d){
+    try {
+      createFANNWorker(function(err, FANN){ $.FANN = FANN; d() })
+    } catch (err) {
+      log2('WebWorker starter fail.<br>'+err.message);
+      throw err;
+    }
+  },
+  function(d){ $.FANN.create([2, 1],           function(err, NN)  { $.NN = NN; d(err)  }) },
+  function(d){ $.FANN.createTraining(XOR_DATA, function(err, data){ $.data = data; d() }) },
+  function(d){ $.NN.set_training_algorithm($.FANN.TRAIN_RPROP, d)                         },
+  function(d){ $.NN.set_activation_function_hidden($.FANN.SIGMOID_SYMMETRIC, d)           },
+  function(d){ $.NN.set_activation_function_output($.FANN.LINEAR, d)                      },
+  function(d){ $.NN.set_train_error_function($.FANN.ERRORFUNC_TANH, d)                    },
+  function(d){ $.NN.set_learning_rate(0.35, d)                                            },
+
+  function(d){ $.NN.set_train_stop_function($.FANN.STOPFUNC_BIT, d)                       },
+
+  function(d){ $.NN.cascadetrain_on_data($.data.pointer, 10, 1, 0.0, d)                   },
+
+  function(d){ $.NN.run_list([ [-1,-1], [-1,1], [1,-1], [1,1], ],
+    function(error, resp){
+      log2("-1 , -1 => " + resp[0]);
+      log2("-1 ,  1 => " + resp[1]);
+      log2(" 1 , -1 => " + resp[2]);
+      log2(" 1 ,  1 => " + resp[3]);
+      $.NN.get_MSE(function(error, mse){
+        log2("Error: " + mse);
+        d();
+      });
+    });
+  },
+]);
 
 FANN_ready = function () {
     XOR();
 };
 </script>
+</body>
+</html>
