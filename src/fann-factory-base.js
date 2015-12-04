@@ -12,13 +12,20 @@ function avatarConstructor(initFn) {
     C.prototype.getWorker = function(){ return fannWorker };
 
     C.prototype.__workerResponse = function(doID, error, response) {
-        doing[doID](error, response);
+        if (error) {
+            error = 'FANN Worker fail to run ' + doing[doID].method +
+                    '(' + doing[doID].args.join(', ') + '). Error: ' + error;
+        }
+        doing[doID].fn(error, response);
         delete doing[doID];
     };
 
     C.prototype.__workerDo = function(method, args, callback) {
         var doID = Math.random();
-        doing[doID] = callback;
+        doing[doID] = { method:method, args:args, fn:callback };
+        for (var i=0; i<args.length; i++) {
+            if (args[i].avatarID) args[i] = { avatarID: args[i].avatarID };
+        }
         fannWorker.postMessage({doID:doID, obj:objID, method:method, args:args});
     };
     return C;

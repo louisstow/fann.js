@@ -315,6 +315,10 @@ exports.addEventListener('message', function(msg) {
             var obj = realObjects[data.obj];
             var error = null, response = null;
             try {
+                for (var i=0; i<data.args.length; i++) {
+                    var id = data.args[i].avatarID;
+                    if (id) data.args[i] = realObjects[id];
+                }
                 response = obj[data.method].apply(obj, data.args);
             } catch(err) {
                 error = err.message;
